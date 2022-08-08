@@ -1,16 +1,13 @@
 import { User } from 'src/user/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsNumber } from 'class-validator';
-import { Expense } from 'src/expense/entities/expense.entity';
+import { IsDateString, IsNumber, IsString } from 'class-validator';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { DateTime } from 'luxon';
 
 @Entity()
 export class Income {
@@ -22,6 +19,11 @@ export class Income {
   @Column()
   @IsNumber()
   amount: number;
+
+  @ApiProperty()
+  @Column()
+  @IsString()
+  comments: string;
 
   @ApiProperty()
   @Column({ name: 'user_id' })

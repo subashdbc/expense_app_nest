@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pagination } from 'src/shared/dto/pagination.dto';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -14,6 +15,16 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    // check if user already exists
+    const allUsers = await this.usersRepository.find();
+    const userObj = allUsers.find((x) => x.email === createUserDto.email);
+    if (userObj) {
+      throw new InternalServerErrorException('Email already exists!');
+    }
+    // hashing the password
+    const saltOrRounds = 10;
+    const hash = await bcrypt.hash(createUserDto.password, saltOrRounds);
+    createUserDto.password = hash;
     return await this.usersRepository.save(createUserDto);
   }
 
@@ -29,7 +40,7 @@ export class UserService {
     return await this.usersRepository.findOne({ where: { email } });
   }
 
-  async pagination(pagination: Pagination): Promise<any> {
+  async pagination(pagination: Pagination): Promise<[User[], number]> {
     const selectVal = {};
     if (pagination.select) {
       pagination.select.map((x) => {
@@ -42,7 +53,7 @@ export class UserService {
         realtionVal[x] = true;
       });
     }
-    return await this.usersRepository.findAndCount({
+    const result = await this.usersRepository.findAndCount({
       select: selectVal,
       relations: realtionVal,
       order: pagination.order,
@@ -50,6 +61,7 @@ export class UserService {
       take: pagination.take,
       cache: true,
     });
+    return result;
   }
   async findWithExpenses(id: number): Promise<any> {
     return await this.usersRepository.find({

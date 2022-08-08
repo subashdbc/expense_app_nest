@@ -2,7 +2,7 @@ import { CreateIncomeDto } from './dto/create-income.dto';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pagination } from 'src/shared/dto/pagination.dto';
-import { Between, DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { Income } from './entities/income.entity';
 import { UpdateIncomeDto } from './dto/update-income.dto';
 import { User } from 'src/user/entities/user.entity';
@@ -32,7 +32,7 @@ export class IncomeService {
     return await this.incomeRepository.findOne({ where: { id } });
   }
 
-  async pagination(pagination: Pagination): Promise<Income[]> {
+  async pagination(pagination: Pagination): Promise<[Income[], number]> {
     const selectVal = {};
     if (pagination.select) {
       pagination.select.map((x) => {
@@ -45,7 +45,8 @@ export class IncomeService {
         realtionVal[x] = true;
       });
     }
-    return await this.incomeRepository.find({
+
+    return await this.incomeRepository.findAndCount({
       select: selectVal,
       relations: realtionVal,
       order: pagination.order,

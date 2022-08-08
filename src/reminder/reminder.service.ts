@@ -56,7 +56,7 @@ export class ReminderService {
     return await this.reminderRepo.delete(id);
   }
 
-  async pagination(pagination: Pagination): Promise<Reminder[]> {
+  async pagination(pagination: Pagination): Promise<[Reminder[], number]> {
     const selectVal = {};
     if (pagination.select) {
       pagination.select.map((x) => {
@@ -69,7 +69,7 @@ export class ReminderService {
         realtionVal[x] = true;
       });
     }
-    return await this.reminderRepo.find({
+    return await this.reminderRepo.findAndCount({
       select: selectVal,
       relations: realtionVal,
       order: pagination.order,

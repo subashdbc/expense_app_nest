@@ -8,6 +8,8 @@ import {
   Delete,
   ParseIntPipe,
   UseGuards,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -16,9 +18,8 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { Pagination } from 'src/shared/dto/pagination.dto';
 
-@ApiBearerAuth()
-@UseGuards(JwtGuard)
 @ApiTags('users')
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -29,26 +30,36 @@ export class UserController {
   }
 
   @Get()
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   findAll() {
     return this.userService.findAll();
   }
 
   @Post('/pagination')
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   pagination(@Body() body: Pagination) {
     return this.userService.pagination(body);
   }
 
   @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
 
   @Get('expenses/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   findWithExpenses(@Param('id', ParseIntPipe) id: number) {
     return this.userService.findWithExpenses(id);
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -57,6 +68,8 @@ export class UserController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtGuard)
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
   }

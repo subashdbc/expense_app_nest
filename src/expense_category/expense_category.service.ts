@@ -1,33 +1,41 @@
 import { UpdateExpenseCategoryDto } from './dto/update-expense_category.dto';
 import { CreateExpenseCategoryDto } from './dto/create-expense_category.dto';
 import { ExpenseCategory } from './entities/expense_category.entity';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pagination } from 'src/shared/dto/pagination.dto';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ExpenseCategoryService {
   constructor(
     @InjectRepository(ExpenseCategory)
-    private expenseCategoryRepository: Repository<ExpenseCategory>,
+    private expenseCateRepository: Repository<ExpenseCategory>,
+    @Inject('CURRENT_USER') private readonly currentUser: any,
   ) {}
 
   async create(
     createCategoryDto: CreateExpenseCategoryDto,
   ): Promise<ExpenseCategory> {
-    return await this.expenseCategoryRepository.save(createCategoryDto);
+    const getCurrentUser: User = this.currentUser.user;
+    const expenseCate = this.expenseCateRepository.create(createCategoryDto);
+    expenseCate.user = getCurrentUser;
+    expenseCate.userId = getCurrentUser.id;
+    return await this.expenseCateRepository.save(expenseCate);
   }
 
   async findAll(): Promise<ExpenseCategory[]> {
-    return await this.expenseCategoryRepository.find();
+    return await this.expenseCateRepository.find();
   }
 
   async findOne(id: number): Promise<ExpenseCategory> {
-    return await this.expenseCategoryRepository.findOne({ where: { id } });
+    return await this.expenseCateRepository.findOne({ where: { id } });
   }
 
-  async pagination(pagination: Pagination): Promise<ExpenseCategory[]> {
+  async pagination(
+    pagination: Pagination,
+  ): Promise<[ExpenseCategory[], number]> {
     const selectVal = {};
     if (pagination.select) {
       pagination.select.map((x) => {
@@ -40,7 +48,7 @@ export class ExpenseCategoryService {
         realtionVal[x] = true;
       });
     }
-    return await this.expenseCategoryRepository.find({
+    return await this.expenseCateRepository.findAndCount({
       select: selectVal,
       relations: realtionVal,
       order: pagination.order,
@@ -50,7 +58,7 @@ export class ExpenseCategoryService {
     });
   }
   async findWithExpenses(id: number): Promise<any> {
-    return await this.expenseCategoryRepository.find({
+    return await this.expenseCateRepository.find({
       where: {
         id,
       },
@@ -64,10 +72,10 @@ export class ExpenseCategoryService {
     id: number,
     updateCategoryDto: UpdateExpenseCategoryDto,
   ): Promise<UpdateResult> {
-    return await this.expenseCategoryRepository.update(id, updateCategoryDto);
+    return await this.expenseCateRepository.update(id, updateCategoryDto);
   }
 
   async remove(id: number): Promise<DeleteResult> {
-    return await this.expenseCategoryRepository.delete(id);
+    return await this.expenseCateRepository.delete(id);
   }
 }

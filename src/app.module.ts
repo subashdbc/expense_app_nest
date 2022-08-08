@@ -12,7 +12,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ExpenseCategoryModule } from './expense_category/expense_category.module';
 import { IncomeModule } from './income/income.module';
 import { Income } from './income/entities/income.entity';
-
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
     AuthModule,
@@ -20,11 +20,16 @@ import { Income } from './income/entities/income.entity';
     ExpenseModule,
     ReminderModule,
     ExpenseCategoryModule,
+    ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'expenses.db.sqlite',
+      type: 'mysql',
+      host: process.env.DATABASE_URL,
+      port: +process.env.DATABASE_PORT,
+      username: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
       entities: [User, Expense, Reminder, ExpenseCategory, Income],
-      synchronize: true,
+      synchronize: false,
     }),
     ScheduleModule.forRoot(),
     IncomeModule,

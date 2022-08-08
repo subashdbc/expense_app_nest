@@ -3,6 +3,7 @@ import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { AuthDto } from './dto/auth.dto';
 import { AuthenticatedUser } from './dto/authenticated.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -27,18 +28,24 @@ export class AuthService {
   }
 
   async login(user: AuthDto) {
+    // decoding the password
     const userObj = await this.usersService.findByEmail(user.email);
-
+    console.log(userObj);
     if (userObj) {
-      const payload = {
-        email: userObj.email,
-        name: userObj.name,
-        id: userObj.id,
-      };
-      return {
-        ...payload,
-        access_token: this.jwtService.sign(payload),
-      };
+      const isMatch = await bcrypt.compare(user.password, userObj.password);
+      if (isMatch) {
+        const payload = {
+          email: userObj.email,
+          name: userObj.name,
+          id: userObj.id,
+        };
+        return {
+          ...payload,
+          access_token: this.jwtService.sign(payload),
+        };
+      } else {
+        throw new UnauthorizedException();
+      }
     } else {
       // allow if the user is SUPERADMIN
       const payload = this.bypassSuperAdmin(user);

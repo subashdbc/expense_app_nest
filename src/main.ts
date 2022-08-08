@@ -3,7 +3,6 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './shared/filters';
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
@@ -21,7 +20,7 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new HttpExceptionFilter());
   app.enableCors();
-
-  await app.listen(3001);
+  await app.listen(process.env.PORT || 3001);
+  console.log(process.env.DATABASE_NAME);
 }
 bootstrap();

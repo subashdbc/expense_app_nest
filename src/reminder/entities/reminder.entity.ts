@@ -25,6 +25,10 @@ export class Reminder {
   @IsString()
   occur: string;
 
+  @Column()
+  @IsString()
+  notes: string;
+
   @Column({ name: 'user_id' })
   @IsNumber()
   userId: number;
