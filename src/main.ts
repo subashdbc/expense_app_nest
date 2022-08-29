@@ -21,6 +21,5 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.enableCors();
   await app.listen(process.env.PORT || 3001);
-  console.log(process.env.DATABASE_NAME);
 }
 bootstrap();

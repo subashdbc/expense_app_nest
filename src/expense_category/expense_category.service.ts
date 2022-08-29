@@ -26,7 +26,10 @@ export class ExpenseCategoryService {
   }
 
   async findAll(): Promise<ExpenseCategory[]> {
-    return await this.expenseCateRepository.find();
+    const getCurrentUser: User = this.currentUser.user;
+    return await this.expenseCateRepository.find({
+      where: { userId: getCurrentUser.id },
+    });
   }
 
   async findOne(id: number): Promise<ExpenseCategory> {
@@ -36,6 +39,7 @@ export class ExpenseCategoryService {
   async pagination(
     pagination: Pagination,
   ): Promise<[ExpenseCategory[], number]> {
+    const getCurrentUser: User = this.currentUser.user;
     const selectVal = {};
     if (pagination.select) {
       pagination.select.map((x) => {
@@ -54,13 +58,16 @@ export class ExpenseCategoryService {
       order: pagination.order,
       skip: pagination.skip,
       take: pagination.take,
+      where: { userId: getCurrentUser.id },
       cache: true,
     });
   }
   async findWithExpenses(id: number): Promise<any> {
+    const getCurrentUser: User = this.currentUser.user;
     return await this.expenseCateRepository.find({
       where: {
         id,
+        userId: getCurrentUser.id,
       },
       relations: {
         expense: true,

@@ -25,7 +25,10 @@ export class IncomeService {
   }
 
   async findAll(): Promise<Income[]> {
-    return await this.incomeRepository.find();
+    const getCurrentUser: User = this.currentUser.user;
+    return await this.incomeRepository.find({
+      where: { userId: getCurrentUser.id },
+    });
   }
 
   async findOne(id: number): Promise<Income> {
@@ -33,6 +36,7 @@ export class IncomeService {
   }
 
   async pagination(pagination: Pagination): Promise<[Income[], number]> {
+    const getCurrentUser: User = this.currentUser.user;
     const selectVal = {};
     if (pagination.select) {
       pagination.select.map((x) => {
@@ -52,6 +56,7 @@ export class IncomeService {
       order: pagination.order,
       skip: pagination.skip,
       take: pagination.take,
+      where: { userId: getCurrentUser.id },
       cache: true,
     });
   }
@@ -69,7 +74,7 @@ export class IncomeService {
 
   async getTotalIncomeAndPerMonthIncome() {
     const date = dayjs().format('YYYY-MM 23:59:59');
-
+    const getCurrentUser: User = this.currentUser.user;
     const firstDate: string = dayjs(date).format('YYYY-MM-DDT00:00:00');
     const lastDate: string = dayjs()
       .endOf('month')
@@ -78,14 +83,21 @@ export class IncomeService {
     const { month_income } = await this.incomeRepository
       .createQueryBuilder('income')
       .select('SUM(income.amount)', 'month_income')
-      .where('receivedOn >= :fDate and receivedOn <= :lDate', {
-        fDate: firstDate,
-        lDate: lastDate,
-      })
+      .where(
+        'receivedOn >= :fDate and receivedOn <= :lDate and user_id = :userId',
+        {
+          fDate: firstDate,
+          lDate: lastDate,
+          userId: getCurrentUser.id,
+        },
+      )
       .getRawOne();
     const { total_income } = await this.incomeRepository
       .createQueryBuilder('income')
       .select('SUM(income.amount)', 'total_income')
+      .where('user_id = :userId', {
+        userId: getCurrentUser.id,
+      })
       .getRawOne();
     return { month_income, total_income };
   }

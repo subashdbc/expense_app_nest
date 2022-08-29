@@ -7,27 +7,37 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
 
 @Entity()
 export class Expense {
+  @ApiProperty()
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty()
   @Column()
   name: string;
 
+  @ApiProperty()
   @Column()
   date: Date;
 
+  @ApiProperty()
   @Column()
   amount: number;
 
-  @Column()
+  @ApiProperty()
+  @Column({ nullable: true })
+  @IsString()
   notes: string;
 
+  @ApiProperty()
   @Column({ name: 'user_id' })
   userId: number;
 
+  @ApiProperty()
   @Column({ name: 'category_id' })
   categoryId: number;
 

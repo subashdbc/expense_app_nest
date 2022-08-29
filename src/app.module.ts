@@ -12,26 +12,34 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ExpenseCategoryModule } from './expense_category/expense_category.module';
 import { IncomeModule } from './income/income.module';
 import { Income } from './income/entities/income.entity';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: `.env.${process.env.NODE_ENV}`,
+    }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return {
+          type: 'mysql',
+          host: config.get<string>('DATABASE_URL'),
+          port: config.get<number>('DATABASE_PORT'),
+          username: config.get<string>('DATABASE_USER'),
+          password: config.get<string>('DATABASE_PASSWORD'),
+          database: config.get<string>('DATABASE_NAME'),
+          entities: [User, Expense, Reminder, ExpenseCategory, Income],
+          synchronize: true,
+        };
+      },
+    }),
+    ScheduleModule.forRoot(),
     AuthModule,
     UserModule,
     ExpenseModule,
     ReminderModule,
     ExpenseCategoryModule,
-    ConfigModule.forRoot(),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DATABASE_URL,
-      port: +process.env.DATABASE_PORT,
-      username: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-      entities: [User, Expense, Reminder, ExpenseCategory, Income],
-      synchronize: false,
-    }),
-    ScheduleModule.forRoot(),
     IncomeModule,
   ],
 })

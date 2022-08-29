@@ -31,11 +31,16 @@ export class ExpenseService {
   }
 
   async findAll(): Promise<Expense[]> {
-    return await this.expenseRepo.find();
+    const getCurrentUser: User = this.currentUser.user;
+    return await this.expenseRepo.find({
+      where: { userId: getCurrentUser.id },
+    });
   }
 
   async findAllWithUser(): Promise<Expense[]> {
+    const getCurrentUser: User = this.currentUser.user;
     return await this.expenseRepo.find({
+      where: { userId: getCurrentUser.id },
       relations: {
         user: true,
       },
@@ -63,6 +68,7 @@ export class ExpenseService {
   }
 
   async pagination(pagination: Pagination): Promise<Expense[]> {
+    const getCurrentUser: User = this.currentUser.user;
     const selectVal = {};
     if (pagination.select) {
       pagination.select.map((x) => {
@@ -81,16 +87,19 @@ export class ExpenseService {
       order: pagination.order,
       skip: pagination.skip,
       take: pagination.take,
+      where: { userId: getCurrentUser.id },
       cache: true,
     });
   }
 
   async filterByMonth(date: Date) {
+    const getCurrentUser: User = this.currentUser.user;
     const firstDate: Date = dayjs(date).toDate();
     const lastDate: Date = dayjs(date).endOf('month').toDate();
     const results = await this.expenseRepo.find({
       where: {
         date: Between(firstDate, lastDate),
+        userId: getCurrentUser.id,
       },
       order: {
         date: 'DESC',
@@ -101,7 +110,7 @@ export class ExpenseService {
 
   async getTotalExpenseAndPerMonthExpense() {
     const date = dayjs().format('YYYY-MM 23:59:59');
-
+    const getCurrentUser: User = this.currentUser.user;
     const firstDate: string = dayjs(date).format('YYYY-MM-DDT00:00:00');
     const lastDate: string = dayjs()
       .endOf('month')
@@ -110,26 +119,32 @@ export class ExpenseService {
     const { month_expense } = await this.expenseRepo
       .createQueryBuilder('expense')
       .select('SUM(expense.amount)', 'month_expense')
-      .where('date >= :fDate and date <= :lDate', {
+      .where('date >= :fDate and date <= :lDate and user_id = :userId', {
         fDate: firstDate,
         lDate: lastDate,
+        userId: getCurrentUser.id,
       })
       .getRawOne();
     const { total_expense } = await this.expenseRepo
       .createQueryBuilder('expense')
       .select('SUM(expense.amount)', 'total_expense')
+      .where('user_id = :userId', {
+        userId: getCurrentUser.id,
+      })
       .getRawOne();
     return { month_expense, total_expense };
   }
 
   async getMonthlyDataGroupedByDate(startDate: Date, endDate: Date) {
+    const getCurrentUser: User = this.currentUser.user;
     const data = await this.expenseRepo
       .createQueryBuilder('expense')
       .select('expense.date', 'date')
       .addSelect('SUM(expense.amount)', 'amount')
-      .where('date >= :fDate and date <= :lDate', {
+      .where('date >= :fDate and date <= :lDate and user_id = :userId', {
         fDate: startDate,
         lDate: endDate,
+        userId: getCurrentUser.id,
       })
       .groupBy('expense.date')
       .getRawMany();
@@ -143,11 +158,15 @@ export class ExpenseService {
   }
 
   async getDataGroupedByCategory() {
+    const getCurrentUser: User = this.currentUser.user;
     const data = await this.expenseRepo
       .createQueryBuilder('expense')
       .select('category.name', 'name')
       .addSelect('SUM(expense.amount)', 'amount')
       .leftJoinAndSelect('expense.category', 'category')
+      .where('category.user_id = :userId', {
+        userId: getCurrentUser.id,
+      })
       .groupBy('expense.category')
       .getRawMany();
 

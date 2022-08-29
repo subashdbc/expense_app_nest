@@ -21,7 +21,7 @@ export class Income {
   amount: number;
 
   @ApiProperty()
-  @Column()
+  @Column({ nullable: true })
   @IsString()
   comments: string;
 

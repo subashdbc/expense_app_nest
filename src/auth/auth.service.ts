@@ -30,7 +30,6 @@ export class AuthService {
   async login(user: AuthDto) {
     // decoding the password
     const userObj = await this.usersService.findByEmail(user.email);
-    console.log(userObj);
     if (userObj) {
       const isMatch = await bcrypt.compare(user.password, userObj.password);
       if (isMatch) {

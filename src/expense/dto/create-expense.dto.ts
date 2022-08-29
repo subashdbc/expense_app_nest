@@ -4,6 +4,7 @@ import {
   IsDecimal,
   IsInt,
   IsNumber,
+  IsOptional,
   IsString,
 } from 'class-validator';
 
@@ -21,6 +22,7 @@ export class CreateExpenseDto {
   amount: number;
 
   @IsString()
+  @IsOptional()
   @ApiProperty()
   notes: string;
 
